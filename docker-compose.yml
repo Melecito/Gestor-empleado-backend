@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   mysql:
@@ -7,21 +5,27 @@ services:
     container_name: mysql-empleados
     restart: always
     environment:
-        MYSQL_ROOT_PASSWORD: Pasword1
-        MYSQL_DATABASE: control_empleados
+      MYSQL_ROOT_PASSWORD: Pasword1
+      MYSQL_DATABASE: control_empleados
     ports:
       - "3310:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: .
     container_name: backend-control
-    restart: always
+    restart: on-failure
     ports:
       - "8085:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME}
